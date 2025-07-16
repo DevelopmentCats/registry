@@ -47,20 +47,28 @@ fi
 printf "$${BOLD}Configuring pgAdmin...\n"
 
 if [ -f "$PGADMIN_VENV_DIR/bin/pgadmin4" ]; then
-  # Create pgAdmin config file using Terraform-generated configuration
-  cat > "$PGADMIN_DATA_DIR/config_local.py" << EOF
+  # Find the pgAdmin installation directory
+  PGADMIN_INSTALL_DIR=$("$PGADMIN_VENV_DIR/bin/python" -c "import pgadmin4; import os; print(os.path.dirname(pgadmin4.__file__))")
+  
+  # Create pgAdmin config file in the correct location (next to config.py)
+  cat > "$PGADMIN_INSTALL_DIR/config_local.py" << EOF
 # pgAdmin configuration for Coder workspace
 ${CONFIG}
 EOF
 
-  printf "📄 Config written to $PGADMIN_DATA_DIR/config_local.py\n"
+  printf "📄 Config written to $PGADMIN_INSTALL_DIR/config_local.py\n"
   
   printf "$${BOLD}Starting pgAdmin in background...\n"
   printf "📝 Check logs at $${LOG_PATH}\n"
   printf "🌐 Serving at http://localhost:${PORT}${SERVER_BASE_PATH}\n"
   
+  # Create required directories
+  mkdir -p "$PGADMIN_DATA_DIR/sessions"
+  mkdir -p "$PGADMIN_DATA_DIR/storage"
+  
+  # Start pgadmin4 from the virtual environment with proper environment
   cd "$PGADMIN_DATA_DIR"
-  "$PGADMIN_VENV_DIR/bin/pgadmin4" > "$${LOG_PATH}" 2>&1 &
+  PYTHONPATH="$PGADMIN_INSTALL_DIR:$PYTHONPATH" "$PGADMIN_VENV_DIR/bin/pgadmin4" > "$${LOG_PATH}" 2>&1 &
 else
   printf "⚠️  Warning: pgAdmin4 virtual environment not found\n"
   printf "📝 Installation may have failed - check logs above\n"
