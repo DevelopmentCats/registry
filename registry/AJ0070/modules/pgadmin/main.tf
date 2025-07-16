@@ -100,7 +100,7 @@ locals {
   config_content = join("\n", [
     for key, value in local.config_with_path :
     format("%s = %s", key, 
-      can(regex("^(true|false)$", tostring(value))) ? upper(tostring(value)) :
+      can(regex("^(true|false)$", tostring(value))) ? (value ? "True" : "False") :
       can(tonumber(value)) ? tostring(value) :
       format("'%s'", tostring(value))
     )
