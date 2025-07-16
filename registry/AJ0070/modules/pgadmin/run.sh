@@ -10,17 +10,48 @@ BOLD='\033[0;1m'
 
 printf "$${BOLD}Installing pgAdmin!\n"
 
-if ! command -v pip > /dev/null 2>&1; then
-    echo "pip is not installed"
-    echo "Please install pip in your Dockerfile/VM image before using this module"
-    exit 1
-fi
+INSTALLER=""
+check_available_installer() {
+  echo "Checking for a supported installer"
+  if command -v pipx >/dev/null 2>&1; then
+    echo "pipx is installed"
+    INSTALLER="pipx"
+    return
+  fi
+  if command -v uv >/dev/null 2>&1; then
+    echo "uv is installed"
+    INSTALLER="uv"
+    return
+  fi
+  if command -v pip >/dev/null 2>&1; then
+    echo "pip is installed - using with --user flag"
+    INSTALLER="pip"
+    return
+  fi
+  echo "No valid installer found"
+  echo "Please install pipx, uv, or pip in your Dockerfile/VM image before using this module"
+  exit 1
+}
 
-if ! command -v pgadmin4 > /dev/null 2>&1; then
-  pip install pgadmin4-web
-  echo "pgAdmin has been installed\n\n"
+if ! command -v pgadmin4 >/dev/null 2>&1; then
+  check_available_installer
+  printf "Installing pgAdmin with $${INSTALLER}...\n"
+  case $INSTALLER in
+  pipx)
+    pipx install pgadmin4-web &&
+      printf "🥳 pgAdmin has been installed\n\n"
+    ;;
+  uv)
+    uv pip install pgadmin4-web &&
+      printf "🥳 pgAdmin has been installed\n\n"
+    ;;
+  pip)
+    pip install --user pgadmin4-web &&
+      printf "🥳 pgAdmin has been installed\n\n"
+    ;;
+  esac
 else
-  echo "pgAdmin is already installed\n\n"
+  printf "🥳 pgAdmin is already installed\n\n"
 fi
 
 printf "$${BOLD}Configuring pgAdmin...\n"
