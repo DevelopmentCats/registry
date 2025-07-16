@@ -27,11 +27,11 @@ variable "config" {
   type        = any
   description = "A map of pgAdmin configuration settings."
   default = {
-    DEFAULT_EMAIL              = "admin@coder.com"
-    DEFAULT_PASSWORD           = "coderPASSWORD"
-    SERVER_MODE               = false
-    MASTER_PASSWORD_REQUIRED  = false
-    LISTEN_ADDRESS            = "127.0.0.1"
+    DEFAULT_EMAIL            = "admin@coder.com"
+    DEFAULT_PASSWORD         = "coderPASSWORD"
+    SERVER_MODE              = false
+    MASTER_PASSWORD_REQUIRED = false
+    LISTEN_ADDRESS           = "127.0.0.1"
   }
 }
 
@@ -61,13 +61,13 @@ resource "coder_script" "pgadmin" {
   icon         = "/icon/postgres.svg"
   run_on_start = true
   script = templatefile("${path.module}/run.sh", {
-    PORT                = var.port,
-    LOG_PATH            = "/tmp/pgadmin.log",
-    SERVER_BASE_PATH    = local.server_base_path,
-    CONFIG              = local.config_content,
-    PGADMIN_DATA_DIR    = local.pgadmin_data_dir,
-    PGADMIN_LOG_DIR     = local.pgadmin_log_dir,
-    PGADMIN_VENV_DIR    = local.pgadmin_venv_dir
+    PORT             = var.port,
+    LOG_PATH         = "/tmp/pgadmin.log",
+    SERVER_BASE_PATH = local.server_base_path,
+    CONFIG           = local.config_content,
+    PGADMIN_DATA_DIR = local.pgadmin_data_dir,
+    PGADMIN_LOG_DIR  = local.pgadmin_log_dir,
+    PGADMIN_VENV_DIR = local.pgadmin_venv_dir
   })
 }
 
@@ -75,12 +75,12 @@ locals {
   server_base_path = var.subdomain ? "" : format("/@%s/%s/apps/%s", data.coder_workspace_owner.me.name, data.coder_workspace.me.name, "pgadmin")
   url              = "http://localhost:${var.port}${local.server_base_path}"
   healthcheck_url  = "http://localhost:${var.port}${local.server_base_path}/"
-  
+
   # pgAdmin data directories (user-local paths)
-  pgadmin_data_dir    = "$HOME/.pgadmin"
-  pgadmin_log_dir     = "$HOME/.pgadmin/logs"
-  pgadmin_venv_dir    = "$HOME/.pgadmin/venv"
-  
+  pgadmin_data_dir = "$HOME/.pgadmin"
+  pgadmin_log_dir  = "$HOME/.pgadmin/logs"
+  pgadmin_venv_dir = "$HOME/.pgadmin/venv"
+
   base_config = merge(var.config, {
     LISTEN_PORT = var.port
     # Override paths for user installation
@@ -90,16 +90,16 @@ locals {
     SESSION_DB_PATH = "${local.pgadmin_data_dir}/sessions"
     STORAGE_DIR     = "${local.pgadmin_data_dir}/storage"
     # Disable initial setup prompts for automated deployment
-    SETUP_AUTH      = false
+    SETUP_AUTH = false
   })
-  
+
   config_with_path = var.subdomain ? local.base_config : merge(local.base_config, {
     APPLICATION_ROOT = local.server_base_path
   })
-  
+
   config_content = join("\n", [
     for key, value in local.config_with_path :
-    format("%s = %s", key, 
+    format("%s = %s", key,
       can(regex("^(true|false)$", tostring(value))) ? (value ? "True" : "False") :
       can(tonumber(value)) ? tostring(value) :
       format("'%s'", tostring(value))
