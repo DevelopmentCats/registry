@@ -69,7 +69,7 @@ EOF
   
   # Start pgadmin4 from the virtual environment with proper environment
   cd "$PGADMIN_DATA_DIR"
-  PYTHONPATH="$PGADMIN_INSTALL_DIR:${PYTHONPATH:-}" "$PGADMIN_VENV_DIR/bin/pgadmin4" > "$${LOG_PATH}" 2>&1 &
+  PYTHONPATH="$PGADMIN_INSTALL_DIR:$${PYTHONPATH:-}" "$PGADMIN_VENV_DIR/bin/pgadmin4" > "$${LOG_PATH}" 2>&1 &
 else
   printf "⚠️  Warning: pgAdmin4 virtual environment not found\n"
   printf "📝 Installation may have failed - check logs above\n"
