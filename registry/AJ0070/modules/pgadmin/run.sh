@@ -38,16 +38,13 @@ if ! command -v pgadmin4 >/dev/null 2>&1; then
   printf "Installing pgAdmin with $${INSTALLER}...\n"
   case $INSTALLER in
   pipx)
-    pipx install pgadmin4-web &&
-      printf "🥳 pgAdmin has been installed\n\n"
+    pipx install pgadmin4 && printf "🥳 pgAdmin has been installed\n\n" || echo "Warning: Failed to install pgAdmin with pipx"
     ;;
   uv)
-    uv pip install pgadmin4-web &&
-      printf "🥳 pgAdmin has been installed\n\n"
+    uv pip install pgadmin4 && printf "🥳 pgAdmin has been installed\n\n" || echo "Warning: Failed to install pgAdmin with uv"
     ;;
   pip)
-    pip install --user pgadmin4-web &&
-      printf "🥳 pgAdmin has been installed\n\n"
+    pip install --user pgadmin4 && printf "🥳 pgAdmin has been installed\n\n" || echo "Warning: Failed to install pgAdmin with pip"
     ;;
   esac
 else
@@ -56,19 +53,26 @@ fi
 
 printf "$${BOLD}Configuring pgAdmin...\n"
 
-# Create pgAdmin config directory
-mkdir -p ~/.pgadmin
+if command -v pgadmin4 >/dev/null 2>&1; then
+  mkdir -p ~/.pgadmin
 
-# Write config file
-cat > ~/.pgadmin/config_local.py << EOF
+  cat > ~/.pgadmin/config_local.py << EOF
 # pgAdmin configuration
 ${CONFIG}
 EOF
 
-printf "📄 Config written to ~/.pgadmin/config_local.py\n"
+  printf "📄 Config written to ~/.pgadmin/config_local.py\n"
+else
+  printf "⚠️  Warning: Skipping configuration - pgAdmin4 not found\n"
+fi
 
-printf "$${BOLD}Starting pgAdmin in background...\n"
-printf "📝 Check logs at $${LOG_PATH}\n"
-printf "🌐 Serving at http://localhost:${PORT}${SERVER_BASE_PATH}\n"
-
-pgadmin4 > $${LOG_PATH} 2>&1 &
+if command -v pgadmin4 >/dev/null 2>&1; then
+  printf "$${BOLD}Starting pgAdmin in background...\n"
+  printf "📝 Check logs at $${LOG_PATH}\n"
+  printf "🌐 Serving at http://localhost:${PORT}${SERVER_BASE_PATH}\n"
+  pgadmin4 > $${LOG_PATH} 2>&1 &
+else
+  printf "⚠️  Warning: pgAdmin4 is not available - installation may have failed\n"
+  printf "📝 Check installation logs above for details\n"
+  printf "🔧 You may need to install pgAdmin4 manually or check your Python environment\n"
+fi
