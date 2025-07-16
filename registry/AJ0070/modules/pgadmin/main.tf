@@ -61,10 +61,13 @@ resource "coder_script" "pgadmin" {
   icon         = "/icon/postgres.svg"
   run_on_start = true
   script = templatefile("${path.module}/run.sh", {
-    PORT             = var.port,
-    LOG_PATH         = "/tmp/pgadmin.log",
-    SERVER_BASE_PATH = local.server_base_path,
-    CONFIG           = local.config_content
+    PORT                = var.port,
+    LOG_PATH            = "/tmp/pgadmin.log",
+    SERVER_BASE_PATH    = local.server_base_path,
+    CONFIG              = local.config_content,
+    PGADMIN_DATA_DIR    = local.pgadmin_data_dir,
+    PGADMIN_LOG_DIR     = local.pgadmin_log_dir,
+    PGADMIN_VENV_DIR    = local.pgadmin_venv_dir
   })
 }
 
@@ -73,8 +76,21 @@ locals {
   url              = "http://localhost:${var.port}${local.server_base_path}"
   healthcheck_url  = "http://localhost:${var.port}${local.server_base_path}/"
   
+  # pgAdmin data directories (user-local paths)
+  pgadmin_data_dir    = "$HOME/.pgadmin"
+  pgadmin_log_dir     = "$HOME/.pgadmin/logs"
+  pgadmin_venv_dir    = "$HOME/.pgadmin/venv"
+  
   base_config = merge(var.config, {
     LISTEN_PORT = var.port
+    # Override paths for user installation
+    DATA_DIR        = local.pgadmin_data_dir
+    LOG_FILE        = "${local.pgadmin_log_dir}/pgadmin4.log"
+    SQLITE_PATH     = "${local.pgadmin_data_dir}/pgadmin4.db"
+    SESSION_DB_PATH = "${local.pgadmin_data_dir}/sessions"
+    STORAGE_DIR     = "${local.pgadmin_data_dir}/storage"
+    # Disable initial setup prompts for automated deployment
+    SETUP_AUTH      = false
   })
   
   config_with_path = var.subdomain ? local.base_config : merge(local.base_config, {
