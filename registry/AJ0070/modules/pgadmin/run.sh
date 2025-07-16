@@ -47,8 +47,9 @@ fi
 printf "$${BOLD}Configuring pgAdmin...\n"
 
 if [ -f "$PGADMIN_VENV_DIR/bin/pgadmin4" ]; then
-  # Find the pgAdmin installation directory
-  PGADMIN_INSTALL_DIR=$("$PGADMIN_VENV_DIR/bin/python" -c "import pgadmin4; import os; print(os.path.dirname(pgadmin4.__file__))")
+  # pgAdmin installs to a predictable location in the virtual environment
+  PYTHON_VERSION=$("$PGADMIN_VENV_DIR/bin/python" -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+  PGADMIN_INSTALL_DIR="$PGADMIN_VENV_DIR/lib/python$PYTHON_VERSION/site-packages/pgadmin4"
   
   # Create pgAdmin config file in the correct location (next to config.py)
   cat > "$PGADMIN_INSTALL_DIR/config_local.py" << EOF
