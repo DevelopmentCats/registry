@@ -25,13 +25,12 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      # Terraform and Bun are pinned via mise.toml / mise.lock.
+      - name: Set up mise
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
         with:
-          bun-version: latest
-
-      - name: Set up Terraform
-        uses: coder/coder/.github/actions/setup-tf@c3dd41e1e8c9d0a0860a9a81c3c050be55879dc2 # v2.34.5
+          version: 2026.5.12
+          sha256: a238972a3162d710b85b28c324372e96ca4e4b486c81fe78695000d9fbc77c48
 
       - name: Install dependencies
         run: bun install

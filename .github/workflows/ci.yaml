@@ -25,6 +25,8 @@ jobs:
               - 'bun.lock'
               - 'bunfig.toml'
               - 'tsconfig.json'
+              - 'mise.toml'
+              - 'mise.lock'
               - '.github/workflows/ci.yaml'
               - 'scripts/ts_test_auto.sh'
               - 'scripts/terraform_test_all.sh'
@@ -38,17 +40,18 @@ jobs:
               - '**/*.sh'
             all:
               - '**'
-      - name: Set up Terraform
-        uses: coder/coder/.github/actions/setup-tf@c3dd41e1e8c9d0a0860a9a81c3c050be55879dc2 # v2.34.5
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      # Terraform and Bun are pinned via mise.toml / mise.lock. This
+      # mirrors coder/coder's tool-setup pattern (see coder/coder#25727)
+      # and replaces the previous coder/coder/.github/actions/setup-tf
+      # dependency, which was removed upstream.
+      - name: Set up mise
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
         with:
-          # We're using the latest version of Bun for now, but it might be worth
-          # reconsidering. They've pushed breaking changes in patch releases
-          # that have broken our CI.
-          # Our PR where issues started to pop up: https://github.com/coder/modules/pull/383
-          # The Bun PR that broke things: https://github.com/oven-sh/bun/pull/16067
-          bun-version: latest
+          version: 2026.5.12
+          # Linux-x64 SHA256 for the mise binary itself. Kept in
+          # lockstep with coder/coder v2.35.1's
+          # .github/actions/setup-mise/checksums.toml.
+          sha256: a238972a3162d710b85b28c324372e96ca4e4b486c81fe78695000d9fbc77c48
       - name: Install dependencies
         run: bun install
       - name: Run TypeScript tests
@@ -84,13 +87,13 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name: Install Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      # Terraform (for `terraform fmt`) and Bun are pinned via
+      # mise.toml / mise.lock.
+      - name: Set up mise
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
         with:
-          bun-version: latest
-      # Need Terraform for its formatter
-      - name: Install Terraform
-        uses: coder/coder/.github/actions/setup-tf@c3dd41e1e8c9d0a0860a9a81c3c050be55879dc2 # v2.34.5
+          version: 2026.5.12
+          sha256: a238972a3162d710b85b28c324372e96ca4e4b486c81fe78695000d9fbc77c48
       - name: Install dependencies
         run: bun install
       - name: Validate formatting
